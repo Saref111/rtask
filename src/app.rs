@@ -10,14 +10,19 @@ use ratatui::{
     text::{Line, Text},
     widgets::{Block, Paragraph, Widget},
 };
+use rusqlite::Connection;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct App {
-    counter: u8,
+    conn: Connection,
     exit: bool,
 }
 
 impl App {
+    pub fn new(conn: Connection) -> Self {
+        Self { conn, exit: false }
+    }
+
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
@@ -57,10 +62,7 @@ impl Widget for &App {
             .title_bottom(instructions.centered())
             .border_set(border::THICK);
 
-        let counter_text = Text::from(vec![Line::from(vec![
-            "Value: ".into(),
-            self.counter.to_string().yellow(),
-        ])]);
+        let counter_text = Text::from(vec![Line::from(vec!["Value: ".into(), "1488".into()])]);
 
         Paragraph::new(counter_text)
             .centered()

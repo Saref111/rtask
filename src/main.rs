@@ -1,8 +1,20 @@
 mod app;
+mod db;
+
+use std::io::Error;
 
 use app::App;
-use std::io;
+use rusqlite::Error as DBError;
 
-fn main() -> io::Result<()> {
-    ratatui::run(|terminal| App::default().run(terminal))
+use crate::db::create_bd;
+
+#[derive(Debug)]
+enum AppError {
+    DbError(DBError),
+    IOError(Error),
+}
+
+fn main() -> Result<(), AppError> {
+    let conn = create_bd()?;
+    ratatui::run(|terminal| App::new(conn).run(terminal)).map_err(AppError::IOError)
 }
