@@ -1,18 +1,12 @@
 mod app;
 mod db;
+mod error;
 
-use std::io::Error;
+use error::AppError;
 
 use app::App;
-use rusqlite::Error as DBError;
 
 use crate::db::create_bd;
-
-#[derive(Debug)]
-enum AppError {
-    DbError(DBError),
-    IOError(Error),
-}
 
 fn main() -> Result<(), AppError> {
     let conn = create_bd()?;

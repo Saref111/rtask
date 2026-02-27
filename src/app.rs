@@ -3,7 +3,7 @@ use std::io;
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
-    crossterm::event::{self, Event},
+    crossterm::event::{self, Event, KeyCode},
     layout::Rect,
     style::Stylize,
     symbols::border,
@@ -37,9 +37,10 @@ impl App {
 
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
-            Event::Key(key_event) => {
-                self.exit = true;
-            }
+            Event::Key(key_event) => match key_event.code {
+                KeyCode::Char('q') => self.exit = true,
+                _ => {}
+            },
             _ => {}
         };
         Ok(())
