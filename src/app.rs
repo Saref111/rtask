@@ -12,15 +12,28 @@ use ratatui::{
 };
 use rusqlite::Connection;
 
+#[derive(Debug, PartialEq, Eq)]
+enum Mode {
+    Add,
+    Default,
+}
+
 #[derive(Debug)]
 pub struct App {
     conn: Connection,
     exit: bool,
+    mode: Mode,
+    title_buf: String,
 }
 
 impl App {
     pub fn new(conn: Connection) -> Self {
-        Self { conn, exit: false }
+        Self {
+            conn,
+            exit: false,
+            mode: Mode::Default,
+            title_buf: String::new(),
+        }
     }
 
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
@@ -32,6 +45,23 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
+        if self.mode == Mode::Add {
+            let popup = Block::bordered()
+                .title(Line::from("Enter task title: ").centered())
+                .title_bottom(Line::from("Press <Enter> to add new task").centered());
+
+            let text = Text::from(vec![Line::from(vec![self.title_buf.as_str().into()])]);
+            let popup = Paragraph::new(text).block(popup);
+
+            frame.render_widget(
+                popup,
+                frame
+                    .area()
+                    .centered(Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)),
+            );
+            return;
+        }
+
         let title = Line::from(" Task Manager ".bold()).centered();
 
         let outer_layout = Layout::default()
@@ -40,7 +70,7 @@ impl App {
             .flex(Flex::SpaceBetween)
             .split(frame.area());
 
-        let layout = Layout::default()
+        let main_layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![
                 Constraint::Percentage(30),
@@ -49,16 +79,36 @@ impl App {
             ])
             .flex(Flex::SpaceBetween)
             .split(outer_layout[1]);
+
         frame.render_widget(title, outer_layout[0]);
-        frame.render_widget(Column::new("To do".into()), layout[0]);
-        frame.render_widget(Column::new("In process".into()), layout[1]);
-        frame.render_widget(Column::new("Done".into()), layout[2]);
+        frame.render_widget(Column::new("To do".into()), main_layout[0]);
+        frame.render_widget(Column::new("In progress".into()), main_layout[1]);
+        frame.render_widget(Column::new("Done".into()), main_layout[2]);
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
+        if self.mode == Mode::Add {
+            match event::read()? {
+                Event::Key(key_event) => match key_event.code {
+                    KeyCode::Char(c) => {
+                        if c.is_alphanumeric()
+                            || c.is_ascii_punctuation()
+                            || c.is_ascii_whitespace()
+                        {
+                            self.title_buf.push(c);
+                        }
+                    }
+                    KeyCode::Enter => self.mode = Mode::Default,
+                    _ => {}
+                },
+                _ => {}
+            };
+            return Ok(());
+        }
         match event::read()? {
             Event::Key(key_event) => match key_event.code {
                 KeyCode::Char('q') => self.exit = true,
+                KeyCode::Char('a') => self.mode = Mode::Add,
                 _ => {}
             },
             _ => {}
@@ -89,18 +139,5 @@ impl Widget for Column {
         let title = Line::from(self.name.as_str().bold());
         let block = Block::bordered().title(title.centered());
         block.render(area, buf);
-    }
-}
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let instructions = Line::from(vec![
-            " Decrement ".into(),
-            "<Left>".blue().bold(),
-            " Increment ".into(),
-            "<Right>".blue().bold(),
-            " Quit ".into(),
-            "<Q> ".blue().bold(),
-        ]);
     }
 }
