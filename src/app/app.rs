@@ -6,9 +6,12 @@ use ratatui::{
 };
 use rusqlite::Connection;
 
-use crate::app::{
-    handlers::{handle_add_new_task, handle_key_press},
-    renderers::{render_main_layout, render_popup},
+use crate::{
+    app::{
+        handlers::{handle_add_new_task, handle_key_press},
+        renderers::{render_main_layout, render_popup},
+    },
+    error::AppError,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -35,9 +38,11 @@ impl App {
         }
     }
 
-    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
+    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> Result<(), AppError> {
         while !self.exit {
-            terminal.draw(|frame| self.draw(frame))?;
+            terminal
+                .draw(|frame| self.draw(frame))
+                .map_err(AppError::IOError)?;
             self.handle_events()?;
         }
         Ok(())
@@ -52,17 +57,17 @@ impl App {
         render_main_layout(frame);
     }
 
-    fn handle_events(&mut self) -> io::Result<()> {
+    fn handle_events(&mut self) -> Result<(), AppError> {
         if self.mode == Mode::Add {
-            match event::read()? {
+            match event::read().map_err(AppError::IOError)? {
                 Event::Key(key_event) => {
-                    handle_add_new_task(key_event, self);
+                    handle_add_new_task(key_event, self)?;
                 }
                 _ => {}
             };
             return Ok(());
         }
-        match event::read()? {
+        match event::read().map_err(AppError::IOError)? {
             Event::Key(key_event) => {
                 handle_key_press(key_event, self);
             }
