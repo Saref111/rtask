@@ -19,7 +19,7 @@ pub enum Mode {
 
 #[derive(Debug)]
 pub struct App {
-    conn: Connection,
+    pub conn: Connection,
     pub exit: bool,
     pub mode: Mode,
     pub title_buf: String,

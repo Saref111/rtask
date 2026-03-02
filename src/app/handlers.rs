@@ -1,8 +1,12 @@
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 
-use crate::app::{App, Mode};
+use crate::{
+    app::{App, Mode},
+    db::create_task,
+    error::AppError,
+};
 
-pub fn handle_add_new_task(key_event: KeyEvent, app: &mut App) {
+pub fn handle_add_new_task(key_event: KeyEvent, app: &mut App) -> Result<(), AppError> {
     match key_event.code {
         KeyCode::Char(c) => {
             if c.is_alphanumeric() || c.is_ascii_punctuation() || c.is_ascii_whitespace() {
@@ -15,11 +19,13 @@ pub fn handle_add_new_task(key_event: KeyEvent, app: &mut App) {
         }
         KeyCode::Enter => {
             app.mode = Mode::Default;
-            // todo smth with title_buf
+            create_task(&app.conn, app.title_buf.to_owned())?;
             app.title_buf = String::new();
         }
         _ => {}
     };
+
+    Ok(())
 }
 
 pub fn handle_key_press(key_event: KeyEvent, app: &mut App) {
