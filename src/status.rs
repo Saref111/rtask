@@ -2,7 +2,7 @@ use std::{error::Error, fmt};
 
 use rusqlite::types::{FromSql, FromSqlError, ValueRef};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Status {
     ToDo,
     InProgress,

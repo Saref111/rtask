@@ -14,7 +14,7 @@ use crate::{
     status::Status,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Task {
     pub id: i32,
     pub title: String,
@@ -72,7 +72,7 @@ impl App {
             return;
         }
 
-        render_main_layout(frame);
+        render_main_layout(frame, &self.tasks);
     }
 
     fn handle_events(&mut self) -> Result<(), AppError> {
@@ -94,7 +94,7 @@ impl App {
         Ok(())
     }
 
-    fn update_tasks(&mut self) -> Result<(), AppError> {
+    pub fn update_tasks(&mut self) -> Result<(), AppError> {
         let tasks = get_tasks(&self.conn)?;
         self.tasks = tasks;
         Ok(())

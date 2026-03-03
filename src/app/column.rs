@@ -3,20 +3,19 @@ use ratatui::{
     layout::Rect,
     style::Stylize,
     text::Line,
-    widgets::{Block, Widget},
+    widgets::{Block, List, Widget},
 };
 
+use crate::app::Task;
+
 pub struct Column {
-    items: Vec<String>,
+    items: Vec<Task>,
     name: String,
 }
 
 impl Column {
-    pub fn new(name: String) -> Self {
-        Self {
-            items: vec![],
-            name,
-        }
+    pub fn new(name: String, items: Vec<Task>) -> Self {
+        Self { items, name }
     }
 }
 
@@ -27,6 +26,8 @@ impl Widget for Column {
     {
         let title = Line::from(self.name.as_str().bold());
         let block = Block::bordered().title(title.centered());
-        block.render(area, buf);
+        let list = List::new(self.items.iter().map(|t| t.title.to_string())).block(block);
+
+        list.render(area, buf);
     }
 }

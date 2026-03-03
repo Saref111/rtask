@@ -18,8 +18,12 @@ pub fn handle_add_new_task(key_event: KeyEvent, app: &mut App) -> Result<(), App
             app.title_buf = String::new();
         }
         KeyCode::Enter => {
+            if app.title_buf.is_empty() {
+                return Ok(());
+            }
             app.mode = Mode::Default;
             create_task(&app.conn, app.title_buf.to_owned())?;
+            app.update_tasks()?;
             app.title_buf = String::new();
         }
         _ => {}

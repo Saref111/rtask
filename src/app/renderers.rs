@@ -6,7 +6,10 @@ use ratatui::{
     widgets::{Block, Paragraph, Wrap},
 };
 
-use crate::app::column::Column;
+use crate::{
+    app::{Task, column::Column},
+    status::Status,
+};
 
 pub fn render_popup(frame: &mut Frame, title_buf: &str) {
     let popup = Block::bordered()
@@ -24,7 +27,35 @@ pub fn render_popup(frame: &mut Frame, title_buf: &str) {
     );
 }
 
-pub fn render_main_layout(frame: &mut Frame) {
+pub fn render_main_layout(frame: &mut Frame, tasks: &Vec<Task>) {
+    let todo_tasks = tasks
+        .iter()
+        .filter_map(|t| {
+            if t.status == Status::ToDo {
+                return Some(t.clone());
+            }
+            None
+        })
+        .collect::<Vec<Task>>();
+    let in_progress_tasks = tasks
+        .iter()
+        .filter_map(|t| {
+            if t.status == Status::InProgress {
+                return Some(t.clone());
+            }
+            None
+        })
+        .collect::<Vec<Task>>();
+    let done_tasks = tasks
+        .iter()
+        .filter_map(|t| {
+            if t.status == Status::Done {
+                return Some(t.clone());
+            }
+            None
+        })
+        .collect::<Vec<Task>>();
+
     let title = Line::from(" Task Manager ".bold()).centered();
 
     let outer_layout = Layout::default()
@@ -44,7 +75,10 @@ pub fn render_main_layout(frame: &mut Frame) {
         .split(outer_layout[1]);
 
     frame.render_widget(title, outer_layout[0]);
-    frame.render_widget(Column::new("To do".into()), main_layout[0]);
-    frame.render_widget(Column::new("In progress".into()), main_layout[1]);
-    frame.render_widget(Column::new("Done".into()), main_layout[2]);
+    frame.render_widget(Column::new("To do".into(), todo_tasks), main_layout[0]);
+    frame.render_widget(
+        Column::new("In progress".into(), in_progress_tasks),
+        main_layout[1],
+    );
+    frame.render_widget(Column::new("Done".into(), done_tasks), main_layout[2]);
 }
