@@ -1,5 +1,3 @@
-use std::io;
-
 use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, Event},
@@ -11,8 +9,19 @@ use crate::{
         handlers::{handle_add_new_task, handle_key_press},
         renderers::{render_main_layout, render_popup},
     },
+    db::get_tasks,
     error::AppError,
+    status::Status,
 };
+
+#[derive(Debug)]
+pub struct Task {
+    pub id: i32,
+    pub title: String,
+    pub status: Status,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Mode {
@@ -26,6 +35,8 @@ pub struct App {
     pub exit: bool,
     pub mode: Mode,
     pub title_buf: String,
+    pub tasks: Vec<Task>,
+    pub update_tasks: bool,
 }
 
 impl App {
@@ -35,11 +46,18 @@ impl App {
             exit: false,
             mode: Mode::Default,
             title_buf: String::new(),
+            tasks: vec![],
+            update_tasks: true,
         }
     }
 
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> Result<(), AppError> {
         while !self.exit {
+            if self.update_tasks {
+                self.update_tasks()?;
+                self.update_tasks = false;
+            }
+
             terminal
                 .draw(|frame| self.draw(frame))
                 .map_err(AppError::IOError)?;
@@ -73,6 +91,12 @@ impl App {
             }
             _ => {}
         };
+        Ok(())
+    }
+
+    fn update_tasks(&mut self) -> Result<(), AppError> {
+        let tasks = get_tasks(&self.conn)?;
+        self.tasks = tasks;
         Ok(())
     }
 }

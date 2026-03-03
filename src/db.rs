@@ -1,7 +1,11 @@
 use chrono::Utc;
 use rusqlite::Connection;
 
-use crate::{AppError, status::Status};
+use crate::{
+    AppError,
+    app::{App, Task},
+    status::Status,
+};
 
 pub fn create_bd() -> Result<Connection, AppError> {
     let conn = Connection::open("./rtask.db").map_err(AppError::DbError)?;
@@ -29,4 +33,30 @@ pub fn create_task(conn: &Connection, title: String) -> Result<(), AppError> {
     )
     .map_err(AppError::DbError)?;
     Ok(())
+}
+
+pub fn get_tasks(conn: &Connection) -> Result<Vec<Task>, AppError> {
+    let mut tasks = conn
+        .prepare("SELECT * FROM tasks")
+        .map_err(AppError::DbError)?;
+    let tasks_rows = tasks
+        .query_map([], |row| {
+            Ok(Task {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                status: row.get(2)?,
+                created_at: row.get(3)?,
+                updated_at: row.get(4)?,
+            })
+        })
+        .map_err(AppError::DbError)?;
+
+    let mut tasks = vec![];
+
+    for t in tasks_rows {
+        let t = t.map_err(AppError::DbError)?;
+        tasks.push(t);
+    }
+
+    Ok(tasks)
 }
