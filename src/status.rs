@@ -1,5 +1,3 @@
-use std::{error::Error, fmt};
-
 use rusqlite::types::{FromSql, FromSqlError, ValueRef};
 
 #[derive(Debug, PartialEq, Eq, Clone)]

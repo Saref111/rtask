@@ -1,12 +1,10 @@
-use std::fmt::Debug;
-
 use chrono::{Datelike, SubsecRound, TimeZone, Utc};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Direction, HorizontalAlignment, Layout, Rect},
     style::Stylize,
     text::Line,
-    widgets::{Block, List, ListItem, Paragraph, Widget},
+    widgets::{Block, Paragraph, Widget},
 };
 
 use crate::app::Task;

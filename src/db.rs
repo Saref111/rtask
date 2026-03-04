@@ -1,11 +1,7 @@
 use chrono::Utc;
 use rusqlite::Connection;
 
-use crate::{
-    AppError,
-    app::{App, Task},
-    status::Status,
-};
+use crate::{AppError, app::Task, status::Status};
 
 pub fn create_bd() -> Result<Connection, AppError> {
     let conn = Connection::open("./rtask.db").map_err(AppError::DbError)?;
