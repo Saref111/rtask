@@ -17,6 +17,9 @@ pub fn handle_add_new_task(key_event: KeyEvent, app: &mut App) -> Result<(), App
             app.mode = Mode::Default;
             app.title_buf = String::new();
         }
+        KeyCode::Backspace => {
+            app.title_buf.pop();
+        }
         KeyCode::Enter => {
             if app.title_buf.is_empty() {
                 return Ok(());

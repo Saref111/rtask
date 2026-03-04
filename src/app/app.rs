@@ -37,6 +37,7 @@ pub struct App {
     pub title_buf: String,
     pub tasks: Vec<Task>,
     pub update_tasks: bool,
+    pub selected: Option<(u32, u32)>,
 }
 
 impl App {
@@ -48,6 +49,7 @@ impl App {
             title_buf: String::new(),
             tasks: vec![],
             update_tasks: true,
+            selected: None,
         }
     }
 
