@@ -74,7 +74,7 @@ impl App {
             return;
         }
 
-        render_main_layout(frame, &self.tasks);
+        render_main_layout(frame, &self);
     }
 
     fn handle_events(&mut self) -> Result<(), AppError> {

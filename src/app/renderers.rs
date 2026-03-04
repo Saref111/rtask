@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::{
-    app::{Task, column::Column},
+    app::{App, Task, column::Column},
     status::Status,
 };
 
@@ -27,8 +27,9 @@ pub fn render_popup(frame: &mut Frame, title_buf: &str) {
     );
 }
 
-pub fn render_main_layout(frame: &mut Frame, tasks: &Vec<Task>) {
-    let todo_tasks = tasks
+pub fn render_main_layout(frame: &mut Frame, app: &App) {
+    let todo_tasks = app
+        .tasks
         .iter()
         .filter_map(|t| {
             if t.status == Status::ToDo {
@@ -37,7 +38,8 @@ pub fn render_main_layout(frame: &mut Frame, tasks: &Vec<Task>) {
             None
         })
         .collect::<Vec<Task>>();
-    let in_progress_tasks = tasks
+    let in_progress_tasks = app
+        .tasks
         .iter()
         .filter_map(|t| {
             if t.status == Status::InProgress {
@@ -46,7 +48,8 @@ pub fn render_main_layout(frame: &mut Frame, tasks: &Vec<Task>) {
             None
         })
         .collect::<Vec<Task>>();
-    let done_tasks = tasks
+    let done_tasks = app
+        .tasks
         .iter()
         .filter_map(|t| {
             if t.status == Status::Done {
@@ -75,10 +78,36 @@ pub fn render_main_layout(frame: &mut Frame, tasks: &Vec<Task>) {
         .split(outer_layout[1]);
 
     frame.render_widget(title, outer_layout[0]);
-    frame.render_widget(Column::new("To do".into(), todo_tasks), main_layout[0]);
+
+    let todo_selected = match app.selected {
+        Some((0, x)) => Some(x),
+        _ => None,
+    };
+
     frame.render_widget(
-        Column::new("In progress".into(), in_progress_tasks),
+        Column::new("To do".into(), todo_tasks, todo_selected),
+        main_layout[0],
+    );
+
+    let in_progress_selected = match app.selected {
+        Some((1, x)) => Some(x),
+        _ => None,
+    };
+    frame.render_widget(
+        Column::new(
+            "In progress".into(),
+            in_progress_tasks,
+            in_progress_selected,
+        ),
         main_layout[1],
     );
-    frame.render_widget(Column::new("Done".into(), done_tasks), main_layout[2]);
+
+    let done_selected = match app.selected {
+        Some((2, x)) => Some(x),
+        _ => None,
+    };
+    frame.render_widget(
+        Column::new("Done".into(), done_tasks, done_selected),
+        main_layout[2],
+    );
 }

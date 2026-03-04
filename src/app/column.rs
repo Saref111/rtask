@@ -2,7 +2,7 @@ use chrono::{Datelike, SubsecRound, TimeZone, Utc};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Direction, HorizontalAlignment, Layout, Rect},
-    style::Stylize,
+    style::{Color, Stylize},
     text::Line,
     widgets::{Block, Paragraph, Widget},
 };
@@ -12,11 +12,16 @@ use crate::app::Task;
 pub struct Column {
     items: Vec<Task>,
     name: String,
+    selected: Option<u32>,
 }
 
 impl Column {
-    pub fn new(name: String, items: Vec<Task>) -> Self {
-        Self { items, name }
+    pub fn new(name: String, items: Vec<Task>, selected: Option<u32>) -> Self {
+        Self {
+            items,
+            name,
+            selected,
+        }
     }
 }
 
@@ -42,7 +47,7 @@ impl Widget for Column {
             )
             .split(block.inner(area));
 
-        for (chunk, t) in chunks.iter().zip(&self.items) {
+        for (i, (chunk, t)) in chunks.iter().zip(&self.items).enumerate() {
             let last_update = Utc.timestamp_micros(t.updated_at).unwrap();
             let last_update = format!(
                 "{}, {}, {}, {}",
@@ -59,9 +64,17 @@ impl Widget for Column {
                 },
                 last_update.time().round_subsecs(0)
             );
+            let item_block;
+            if let Some(x) = self.selected
+                && i as u32 == x
+            {
+                item_block = Block::bordered().border_style(Color::LightYellow)
+            } else {
+                item_block = Block::bordered()
+            };
 
             let p = Paragraph::new(t.title.as_str()).block(
-                Block::bordered()
+                item_block
                     .title_bottom(last_update)
                     .title_alignment(HorizontalAlignment::Right),
             );
